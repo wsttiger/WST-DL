@@ -19,6 +19,7 @@ void print(int n_input_channels, int m, int n, float* data) {
 }
 
 void print_matrix(int m, int n, float* data) {
+  printf("Print matrix: m -> %d    n -> %d\n", m, n);
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < n; j++) {
       printf("%10.7f   ", data[i*n+j]);
@@ -92,8 +93,40 @@ void conv2d(int size_h,
 
   im2col(size_h, size_w, f_size_h, f_size_w, n_input_channels, stride_h, stride_w, padding_h, padding_w, in, col.data());
 
+  print_matrix(mm, kk, col.data());
+  printf("\n");
+  print_matrix(1, kk, kn);
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
   mm, 1, kk, 1.0, col.data(), kk, kn, kk, 0.0, out, 1);  
+}
+
+// NOTE:: This actually computes the cross correlation and not a strict convolution
+void conv2d(int n_input_channels,
+            int size_h, 
+            int size_w, 
+            int n_output_channels, 
+            int f_size_h, 
+            int f_size_w, 
+            int stride_h, 
+            int stride_w, 
+            int padding_h, 
+            int padding_w, 
+            float* kn, float* in, float* out) {
+  int fsize = f_size_h*f_size_w*n_input_channels;
+  const int m_output = (size_h - f_size_h + 2*padding_h)/stride_h + 1;
+  const int n_output = (size_w - f_size_w + 2*padding_w)/stride_w + 1;
+  int mm = m_output*n_output;
+  int kk = fsize;
+  std::vector<float> col(mm*kk);
+
+  im2col(size_h, size_w, f_size_h, f_size_w, n_input_channels, stride_h, stride_w, padding_h, padding_w, in, col.data());
+
+  print_matrix(mm, kk, col.data());
+  printf("\n");
+  print_matrix(n_output_channels, kk, kn);
+  cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+  mm, n_output_channels, kk, 1.0, col.data(), kk, kn, kk, 0.0, out, n_output_channels);  
+  printf("finished cblas\n");
 }
 
 // No dilation for now
@@ -116,18 +149,13 @@ void conv2d_batch(int batch_size,
   const int output_size_h = (size_h - f_size_h + 2*padding_h)/stride_h + 1;
   const int output_size_w = (size_w - f_size_w + 2*padding_w)/stride_w + 1;
 
-  const int input_kernel_size = n_input_channels*f_size_h*f_size_w;
-  const int input_frame_size = size_h*size_w;
-  const int input_total_size = n_input_channels*input_frame_size;
-  const int output_frame_size = output_size_h*output_size_w;
-  const int output_total_size = n_output_channels*output_frame_size;
-    for (int b = 0; b < batch_size; b++) {
-      for (int c = 0; c < n_output_channels; c++) {
-        conv2d(size_h, size_w, f_size_h, f_size_w, 
-               n_input_channels, stride_h, stride_w, 
-               padding_h, padding_w, &kn[c*input_kernel_size],  
-               &in[b*input_total_size+c*input_frame_size], &out[b*output_total_size+c*output_frame_size]);
-    }
+  const int input_frame_size = n_input_channels*size_h*size_w;
+  const int output_frame_size = n_output_channels*output_size_h*output_size_w;
+  for (int b = 0; b < batch_size; b++) {
+    conv2d(n_input_channels, size_h, size_w, n_output_channels, 
+           f_size_h, f_size_w, stride_h, stride_w, 
+           padding_h, padding_w, kn,  
+           &in[b*input_frame_size], &out[b*output_frame_size]);
   }
 }
 

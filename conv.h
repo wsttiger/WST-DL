@@ -62,6 +62,7 @@ void im2col(int size_h,
           for (int l = -fdiv2_w; l <= fdiv2_w; l++, p++) {
             int idx = ii + k;   
             int jdx = jj + l;
+            idx = (idx < 0) ? -idx : idx;
             if ((idx >= 0) && (idx < size_h) && 
                 (jdx >= 0) && (jdx < size_w)) {
               out[ldx*fsize+p] = in[c*npixels+idx*size_w+jdx];
@@ -71,33 +72,6 @@ void im2col(int size_h,
       }
     }
   }  
-}
-
-// NOTE:: This actually computes the cross correlation and not a strict convolution
-void conv2d(int size_h, 
-            int size_w, 
-            int f_size_h, 
-            int f_size_w, 
-            int n_input_channels, 
-            int stride_h, 
-            int stride_w, 
-            int padding_h, 
-            int padding_w, 
-            float* kn, float* in, float* out) {
-  int fsize = f_size_h*f_size_w*n_input_channels;
-  const int m_output = (size_h - f_size_h + 2*padding_h)/stride_h + 1;
-  const int n_output = (size_w - f_size_w + 2*padding_w)/stride_w + 1;
-  int mm = m_output*n_output;
-  int kk = fsize;
-  std::vector<float> col(mm*kk);
-
-  im2col(size_h, size_w, f_size_h, f_size_w, n_input_channels, stride_h, stride_w, padding_h, padding_w, in, col.data());
-
-  print_matrix(mm, kk, col.data());
-  printf("\n");
-  print_matrix(1, kk, kn);
-  cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-  mm, 1, kk, 1.0, col.data(), kk, kn, kk, 0.0, out, 1);  
 }
 
 // NOTE:: This actually computes the cross correlation and not a strict convolution
@@ -121,12 +95,12 @@ void conv2d(int n_input_channels,
 
   im2col(size_h, size_w, f_size_h, f_size_w, n_input_channels, stride_h, stride_w, padding_h, padding_w, in, col.data());
 
-  print_matrix(mm, kk, col.data());
-  printf("\n");
-  print_matrix(n_output_channels, kk, kn);
+  // print_matrix(mm, kk, col.data());
+  // printf("\n");
+  // print_matrix(n_output_channels, kk, kn);
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
   mm, n_output_channels, kk, 1.0, col.data(), kk, kn, kk, 0.0, out, n_output_channels);  
-  printf("finished cblas\n");
+  // printf("finished cblas\n");
 }
 
 // No dilation for now

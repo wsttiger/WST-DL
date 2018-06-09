@@ -112,7 +112,7 @@ void test_conv(const std::string& inputFile,
 
   printf("\n\n");
   for (auto x : output) {
-    printf("%10.5e  ", x); 
+    printf("%15.10e  " , x); 
   } 
 }
 

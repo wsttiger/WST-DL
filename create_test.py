@@ -3,16 +3,16 @@ import torch
 
 torch.manual_seed(12345)
 # number of input channels
-ncin = 1
+ncin = 3
 # number of output channels
-ncout = 3
+ncout = 28
 # dimensions of the kernel
-fH = 3
-fW = 3
+fH = 5
+fW = 5
 # strides
 s = 2
 # paddings
-p = 1
+p = 2
 # total size
 sz = ncin*ncout*fH*fW
 # create convolution and convert into numpy array (linear)
@@ -26,10 +26,10 @@ for i in range(0,sz):
 print('', file=fileConv2d)
 
 # batch size
-N = 1
+N = 4
 # image dimensions
-nH = 6
-nW = 6
+nH = 16
+nW = 16
 # total size
 sz = N*ncin*nH*nW
 # create torch array and convert to numpy (linear)
@@ -45,7 +45,6 @@ X = torch.autograd.Variable(X)
 
 # perform convolution in PyTorch
 Y = Cv(X)
-print(Y)
 sz = Y.numel()
 nH = Y.size(2)
 nW = Y.size(3)

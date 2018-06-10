@@ -33,21 +33,9 @@ void test_conv(const std::string& inputFile,
     padding_h = paddingH;
     padding_w = paddingH;
     kernel.resize(sz, 0.0f); 
-
-    printf("Kernel:\n");
-    printf("n_input_channels: %d\n", n_input_channels);
-    printf("n_output_channels: %d\n", n_output_channels);
-    printf("f_size_h: %d\n", f_size_h);
-    printf("f_size_w: %d\n", f_size_w);
-    printf("stride_h: %d\n", stride_h);
-    printf("stride_w: %d\n", stride_w);
-    printf("padding_h: %d\n", padding_h);
-    printf("padding_w: %d\n", padding_w);
     for (auto& x : kernel) {
       fstr_kernel >> x;
-      printf("%10.5e  ", x);
     }
-    printf("\n\n");
   } 
 
   std::ifstream fstr_in(inputFile);
@@ -108,9 +96,9 @@ void test_conv(const std::string& inputFile,
                padding_w, 
                kernel.data(), input.data(), output.data());
 
-  printf("\n\n");
-  for (auto x : output) {
-    printf("%15.10e  " , x); 
+  double tol = 1e-6;
+  for (int i = 0; i < output_gold.size(); i++) {
+    assert(std::abs(output[i]-output_gold[i]) < tol); 
   } 
 }
 

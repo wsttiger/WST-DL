@@ -62,11 +62,13 @@ void im2col(int size_h,
           for (int l = -fdiv2_w; l <= fdiv2_w; l++, p++) {
             int idx = ii + k;   
             int jdx = jj + l;
-            idx = (idx < 0) ? -idx : idx;
             if ((idx >= 0) && (idx < size_h) && 
                 (jdx >= 0) && (jdx < size_w)) {
               out[ldx*fsize+p] = in[c*npixels+idx*size_w+jdx];
             }
+            else {
+              out[ldx*fsize+p] = T(0);
+            } 
           }
         }
       }
@@ -95,12 +97,16 @@ void conv2d(int n_input_channels,
 
   im2col(size_h, size_w, f_size_h, f_size_w, n_input_channels, stride_h, stride_w, padding_h, padding_w, in, col.data());
 
-  // print_matrix(mm, kk, col.data());
-  // printf("\n");
-  // print_matrix(n_output_channels, kk, kn);
+  std::vector<float> out_tmp(n_output_channels*m_output*n_output);
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-  mm, n_output_channels, kk, 1.0, col.data(), kk, kn, kk, 0.0, out, n_output_channels);  
-  // printf("finished cblas\n");
+  mm, n_output_channels, kk, 1.0, col.data(), kk, kn, kk, 0.0, out_tmp.data(), n_output_channels);  
+  int tmpM = m_output*n_output;
+  int tmpN = n_output_channels;
+  for (int i = 0; i < tmpM; i++) {
+    for (int j = 0; j <tmpN; j++) {
+      out[j*tmpM+i] = out_tmp[i*tmpN+j];
+    }
+  }
 }
 
 // No dilation for now

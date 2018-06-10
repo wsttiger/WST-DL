@@ -27,15 +27,11 @@ void test_conv(const std::string& inputFile,
     int strideH;
     fstr_kernel >> strideH;
     stride_h = strideH;
-    int strideW;
-    fstr_kernel >> strideW;
-    stride_w = strideW;
+    stride_w = strideH;
     int paddingH;
     fstr_kernel >> paddingH;
     padding_h = paddingH;
-    int paddingW;
-    fstr_kernel >> paddingW;
-    padding_w = paddingW;
+    padding_w = paddingH;
     kernel.resize(sz, 0.0f); 
 
     printf("Kernel:\n");
@@ -45,6 +41,8 @@ void test_conv(const std::string& inputFile,
     printf("f_size_w: %d\n", f_size_w);
     printf("stride_h: %d\n", stride_h);
     printf("stride_w: %d\n", stride_w);
+    printf("padding_h: %d\n", padding_h);
+    printf("padding_w: %d\n", padding_w);
     for (auto& x : kernel) {
       fstr_kernel >> x;
       printf("%10.5e  ", x);

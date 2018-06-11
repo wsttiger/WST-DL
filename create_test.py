@@ -3,33 +3,35 @@ import torch
 
 torch.manual_seed(12345)
 # number of input channels
-ncin = 3
+ncin = 2
 # number of output channels
-ncout = 28
+ncout = 3 
 # dimensions of the kernel
-fH = 5
-fW = 5
+fH = 3
+fW = 3
 # strides
 s = 2
 # paddings
-p = 2
+p = 1
+# dilation
+d = 2
 # total size
 sz = ncin*ncout*fH*fW
 # create convolution and convert into numpy array (linear)
-Cv = torch.nn.Conv2d(ncin,ncout,(fH,fW),stride=s,padding=p,bias=False)
+Cv = torch.nn.Conv2d(ncin,ncout,(fH,fW),stride=s,padding=p,dilation=1,bias=False)
 Carray = np.array(Cv.weight.data).reshape(sz)
 
 fileConv2d = open('conv2d.dat', 'w')
-print('%d   %d   %d   %d   %d   %d\n' % (ncin,ncout,fH,fW,s,p), end='', file=fileConv2d)
+print('%d   %d   %d   %d   %d   %d   %d\n' % (ncin,ncout,fH,fW,s,p,d), end='', file=fileConv2d)
 for i in range(0,sz):
   print('%15.10e ' % Carray[i], end='', file=fileConv2d)
 print('', file=fileConv2d)
 
 # batch size
-N = 4
+N = 2
 # image dimensions
-nH = 16
-nW = 16
+nH = 7 
+nW = 7
 # total size
 sz = N*ncin*nH*nW
 # create torch array and convert to numpy (linear)

@@ -7,7 +7,7 @@ void test_conv(const std::string& inputFile,
                const std::string& kernelFile) {
   int batch_size, n_input_channels, size_h, size_w, n_output_channels;
   int f_size_h, f_size_w, stride_h, stride_w, padding_h, padding_w;
-
+  int dilation_h, dilation_w;
   std::ifstream fstr_kernel(kernelFile);
   std::vector<float> kernel;
   if (fstr_kernel.is_open()) {
@@ -32,6 +32,10 @@ void test_conv(const std::string& inputFile,
     fstr_kernel >> paddingH;
     padding_h = paddingH;
     padding_w = paddingH;
+    int dilationH;
+    fstr_kernel >> dilationH;
+    dilation_h = dilationH;
+    dilation_w = dilationH;
     kernel.resize(sz, 0.0f); 
     for (auto& x : kernel) {
       fstr_kernel >> x;
@@ -61,8 +65,8 @@ void test_conv(const std::string& inputFile,
   } 
 
   std::vector<float> output;
-  int m_output = (size_h - f_size_h + 2*padding_h)/stride_h + 1;
-  int n_output = (size_w - f_size_w + 2*padding_w)/stride_w + 1;
+  const int m_output = (size_h + 2*padding_h - dilation_h * (f_size_h - 1) - 1)/stride_h + 1;
+  const int n_output = (size_h + 2*padding_w - dilation_w * (f_size_w - 1) - 1)/stride_w + 1;
   output.resize(batch_size*n_output_channels*m_output*n_output);
   std::ifstream fstr_out(outputFile);
   std::vector<float> output_gold;
@@ -94,6 +98,8 @@ void test_conv(const std::string& inputFile,
                stride_w,
                padding_h, 
                padding_w, 
+               dilation_h,
+               dilation_w,
                kernel.data(), input.data(), output.data());
 
   double tol = 1e-6;
